@@ -125,8 +125,8 @@ exports.usernameMatchesField = function (path) {
         path = [path];
     }
     return function (newDoc, oldDoc, newValue, oldValue, userCtx) {
-        var field = utils.getPropertyPath(oldDoc, path);
-        if (userCtx.name !== field) {
+        var field = utils.getPropertyPath(oldDoc||newDoc, path);
+        if (newValue && userCtx.name !== field) {
             throw new Error('Username does not match field ' + path.join('.'));
         }
     };
