@@ -168,21 +168,22 @@ exports.validate = function (fields, doc, values, raw, path, extra) {
  * Authorize a specific field, returning all permissions errors as an array with
  * each error's field property prefixed by the current path.
  *
- * @name authField(f, nDoc, oDoc, nVal, oVal, user, path)
+ * @name authField(f, nDoc, oDoc, nVal, oVal, user, secObj, path)
  * @param {Field} f     - field object
  * @param {Object} nDoc - new document
  * @param {Object} oDoc - old document
  * @param nVal          - new field value
  * @param oVal          - old field value
  * @param {Object} user - user context object
+ * @param {Object} secObj - security object
  * @param {Array} path  - current path
  * @returns {Array}
  * @api public
  */
 
-exports.authField = function (f, nDoc, oDoc, nVal, oVal, user, path) {
+exports.authField = function (f, nDoc, oDoc, nVal, oVal, user, secObj, path) {
     //log('authField: ' + path.join('.'));
-    return _.map(f.authorize(nDoc, oDoc, nVal, oVal, user), function (err) {
+    return _.map(f.authorize(nDoc, oDoc, nVal, oVal, user, secObj), function (err) {
         err.field = path.concat(err.field || []);
         err.has_field = true;
         return err;
@@ -196,20 +197,21 @@ exports.authField = function (f, nDoc, oDoc, nVal, oVal, user, path) {
  * Returns an array of permissions errors, each with a field property set to the
  * path of the field which caused the error.
  *
- * @name authFieldSet(f, nDoc, oDoc, nVal, oVal, user, path)
+ * @name authFieldSet(f, nDoc, oDoc, nVal, oVal, user, secObj, path)
  * @param {Field} f     - field object
  * @param {Object} nDoc - new document
  * @param {Object} oDoc - old document
  * @param nVal          - new field value
  * @param oVal          - old field value
  * @param {Object} user - user context object
+ * @param {Object} secObj - security object
  * @param {Array} path  - current path
  * @param {Boolean} extra - whether to raise an error on additional fields
  * @returns {Array}
  * @api public
  */
 
-exports.authFieldSet = function (f, nDoc, oDoc, nVal, oVal, user, path, extra) {
+exports.authFieldSet = function (f, nDoc, oDoc, nVal, oVal, user, secObj, path, extra) {
     //log('authFieldSet: ' + path.join('.'));
     nVal = nVal || {};
     oVal = oVal || {};
@@ -266,7 +268,7 @@ exports.authFieldSet = function (f, nDoc, oDoc, nVal, oVal, user, path, extra) {
             ov = utils.attachmentsBelowPath(oDoc, path.concat([k]));
         }
         return errs.concat(fn(
-            field, nDoc, oDoc, nv, ov, user, path.concat([k]), extra
+            field, nDoc, oDoc, nv, ov, user, secObj, path.concat([k]), extra
         ));
     }, []);
 };

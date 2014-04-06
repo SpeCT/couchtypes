@@ -225,7 +225,7 @@ exports.any = function (perms) {
  */
 
 exports.inherit = function (type) {
-    return function (newDoc, oldDoc, newValue, oldValue, userCtx) {
-        return type.authorize(newValue || {_deleted: true}, oldValue, userCtx);
+    return function (newDoc, oldDoc, newValue, oldValue, userCtx, secObj) {
+        return type.authorize(newValue || {_deleted: true}, oldValue, userCtx, secObj);
     };
 };

@@ -130,17 +130,18 @@ Field.prototype.validate = function (doc, value, raw) {
  * changes. Returns an array of permissions errors, or an empty array if the
  * changes are permissible.
  *
- * @name Field.authorize(newDoc, oldDoc, newVal, oldVal, userCtx)
+ * @name Field.authorize(newDoc, oldDoc, newVal, oldVal, userCtx, secObj)
  * @param {Object} newDoc
  * @param {Object} oldDoc
  * @param newVal
  * @param oldVal
  * @param {Object} userCtx
+ * @param {Object} secObj - security object
  * @returns {Array}
  * @api public
  */
 
-Field.prototype.authorize = function (newDoc, oldDoc, newVal, oldVal, userCtx) {
+Field.prototype.authorize = function (newDoc, oldDoc, newVal, oldVal, userCtx, secObj) {
     var perms = this.permissions;
     var errors = [];
     if (_.isFunction(perms)) {
@@ -258,21 +259,22 @@ Embedded.prototype.validate = function (doc, value, raw) {
  * changes. Returns an array of permissions errors, or an empty array if the
  * changes are permissible.
  *
- * @name Embedded.authorize(newDoc, oldDoc, newVal, oldVal, user)
+ * @name Embedded.authorize(newDoc, oldDoc, newVal, oldVal, user, secObj)
  * @param {Object} newDoc
  * @param {Object} oldDoc
  * @param newVal
  * @param oldVal
  * @param {Object} user
+ * @param {Object} secObj - security object
  * @returns {Array}
  * @api public
  */
 
-Embedded.prototype.authorize = function (newDoc, oldDoc, newVal, oldVal, user) {
+Embedded.prototype.authorize = function (newDoc, oldDoc, newVal, oldVal, user, secObj) {
     if (newVal && oldVal && newVal._id !== oldVal._id) {
         oldVal = undefined;
     }
-    return this.type.authorize(newVal || {_deleted: true}, oldVal, user);
+    return this.type.authorize(newVal || {_deleted: true}, oldVal, user, secObj);
 };
 
 /**
@@ -455,17 +457,18 @@ EmbeddedList.prototype.validate = function (doc, value, raw) {
  * changes. Returns an array of permissions errors, or an empty array if the
  * changes are permissible.
  *
- * @name EmbeddedList.authorize(nDoc, oDoc, nVal, oVal, user)
+ * @name EmbeddedList.authorize(nDoc, oDoc, nVal, oVal, user, secObj)
  * @param {Object} nDoc
  * @param {Object} oDoc
  * @param nVal
  * @param oVal
  * @param {Object} user
+ * @param {Object} secObj - security object
  * @returns {Array}
  * @api public
  */
 
-EmbeddedList.prototype.authorize = function (nDoc, oDoc, nVal, oVal, user) {
+EmbeddedList.prototype.authorize = function (nDoc, oDoc, nVal, oVal, user, secObj) {
     var type = this.type;
     var perms = this.permissions;
 
@@ -485,7 +488,7 @@ EmbeddedList.prototype.authorize = function (nDoc, oDoc, nVal, oVal, user) {
         var od = _.detect(oVal, function (v) {
             return v && v._id === id;
         });
-        var args = [nDoc, oDoc, nd, od, user];
+        var args = [nDoc, oDoc, nd, od, user, secObj];
 
         if (_.isFunction(perms)) {
             curr_errs = utils.getErrors(perms, args);

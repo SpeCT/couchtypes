@@ -126,38 +126,40 @@ Type.prototype.validate = function (doc, rawDoc) {
 /**
  * Run field permissions checks against userCtx and document.
  *
- * @name Type.authorize(nDoc, oDoc, user)
+ * @name Type.authorize(nDoc, oDoc, user, secObj)
  * @param {Object} nDoc - new document
  * @param {Object} oDoc - old document
- * @param {Object} userCtx - user context object
+ * @param {Object} user - user context object
+ * @param {Object} secObj - security object
  * @returns {Array}
  * @api public
  */
 
-Type.prototype.authorize = function (nDoc, oDoc, user) {
-    var errs = this.authorizeTypeLevel(nDoc, oDoc, user);
+Type.prototype.authorize = function (nDoc, oDoc, user, secObj) {
+    var errs = this.authorizeTypeLevel(nDoc, oDoc, user, secObj);
     return errs.concat(fieldset.authFieldSet(
-        this.fields, nDoc, oDoc, nDoc, oDoc, user, [], this.allow_extra_fields
+        this.fields, nDoc, oDoc, nDoc, oDoc, user, secObj, [], this.allow_extra_fields
     ));
 };
 
 /**
  * Runs top type-level permissions checks only.
  *
- * @name Type.authorizeTypeLevel(nDoc, oDoc, user)
+ * @name Type.authorizeTypeLevel(nDoc, oDoc, user, secObj)
  * @param {Object} nDoc - new document
  * @param {Object} oDoc - old document
- * @param {Object} userCtx - user context object
+ * @param {Object} user - user context object
+ * @param {Object} secObj - security object
  * @returns {Array}
  * @api public
  */
 
-Type.prototype.authorizeTypeLevel = function (nDoc, oDoc, user) {
+Type.prototype.authorizeTypeLevel = function (nDoc, oDoc, user, secObj) {
     var perms = this.permissions;
     var errs = [];
     if (_.isFunction(perms)) {
         errs = errs.concat(
-            utils.getErrors(perms, [nDoc, oDoc, null, null, user])
+            utils.getErrors(perms, [nDoc, oDoc, null, null, user, secObj])
         );
     }
     // on update
@@ -172,7 +174,7 @@ Type.prototype.authorizeTypeLevel = function (nDoc, oDoc, user) {
     }
     if (fn) {
         errs = errs.concat(
-            utils.getErrors(fn, [nDoc, oDoc, null, null, user])
+            utils.getErrors(fn, [nDoc, oDoc, null, null, user, secObj])
         );
     }
     return errs;
@@ -183,14 +185,15 @@ Type.prototype.authorizeTypeLevel = function (nDoc, oDoc, user) {
  * providing a new _id value. This is a convenient function to use when creating
  * a type to embed within another.
  *
- * @name Type.create(userCtx, callback)
+ * @name Type.create(userCtx, secObj, callback)
  * @param {Object} userCtx
+ * @param {Object} secObj - security object
  * @param {Function} callback
  * @api public
  */
 
-Type.prototype.create = function (userCtx, callback) {
-    var doc = fieldset.createDefaults(this.fields, {userCtx: userCtx});
+Type.prototype.create = function (userCtx, secObj, callback) {
+    var doc = fieldset.createDefaults(this.fields, {userCtx: userCtx, secObj: secObj});
     db.newUUID(100, function (err, uuid) {
         if (err) {
             return callback(err);
@@ -207,15 +210,16 @@ Type.prototype.create = function (userCtx, callback) {
  *
  * Throws on error.
  *
- * @name validate_doc_update(types, newDoc, oldDoc, userCtx)
+ * @name validate_doc_update(types, newDoc, oldDoc, userCtx, secObj)
  * @param {Object} types
  * @param {Object} newDoc
  * @param {Object} oldDoc
  * @param {Object} userCtx
+ * @param {Object} secObj - security object
  * @api public
  */
 
-exports.validate_doc_update = function (types, newDoc, oldDoc, userCtx) {
+exports.validate_doc_update = function (types, newDoc, oldDoc, userCtx, secObj) {
     if (oldDoc) {
         if (oldDoc.type !== newDoc.type &&
             (types[oldDoc.type] || types[newDoc.type]) &&
@@ -237,7 +241,7 @@ exports.validate_doc_update = function (types, newDoc, oldDoc, userCtx) {
                 throw {forbidden: msg};
             }
         }
-        var permissions_errors = t.authorize(newDoc, oldDoc, userCtx);
+        var permissions_errors = t.authorize(newDoc, oldDoc, userCtx, secObj);
         if (permissions_errors.length) {
             var err2 = permissions_errors[0];
             var msg2 = err2.message || err2.toString();
@@ -247,7 +251,7 @@ exports.validate_doc_update = function (types, newDoc, oldDoc, userCtx) {
             throw {unauthorized: msg2};
         }
         if (t.validate_doc_update) {
-            t.validate_doc_update(newDoc, oldDoc, userCtx);
+            t.validate_doc_update(newDoc, oldDoc, userCtx, secObj);
         }
     }
 };
