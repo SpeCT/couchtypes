@@ -126,7 +126,7 @@ exports.usernameMatchesField = function (path) {
     }
     return function (newDoc, oldDoc, newValue, oldValue, userCtx) {
         var field = utils.getPropertyPath(oldDoc||newDoc, path);
-        if (newValue && userCtx.name !== field) {
+        if (userCtx.name !== field) {
             throw new Error('Username does not match field ' + path.join('.'));
         }
     };
@@ -232,7 +232,7 @@ exports.inherit = function (type) {
 
 
 exports.isServerOrDatabaseAdmin = function() {
-    return function(userCtx, secObj) {
+    return function(newDoc, oldDoc, newValue, oldValue, userCtx, secObj) {
         // see if the user is a server admin
         if(userCtx.roles.indexOf('_admin') !== -1) {
             return true; // a server admin
@@ -256,6 +256,6 @@ exports.isServerOrDatabaseAdmin = function() {
             }
         }
 
-        return false; // default to no admin
+        throw new Error('You must be server or database admin.');
     }
 }
