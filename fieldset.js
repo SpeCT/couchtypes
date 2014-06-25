@@ -33,7 +33,7 @@ exports.createDefaults = function (fields, req, doc, path) {
                 var val,
                     dir = path.concat([k]).join('/');
                 if (_.isFunction(f.default_value)) {
-                    val = f.default_value(req);
+                    val = f.default_value(req, doc, path);
                 }
                 else {
                     val = f.default_value;
@@ -53,7 +53,7 @@ exports.createDefaults = function (fields, req, doc, path) {
 
             if (f.hasOwnProperty('default_value')) {
                 if (_.isFunction(f.default_value)) {
-                    result[k] = f.default_value(req);
+                    result[k] = f.default_value(req, doc, path);
                 }
                 else {
                     result[k] = f.default_value;
